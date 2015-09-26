@@ -1,0 +1,184 @@
+<html>
+<head>
+    <style>
+        h3
+        {
+            text-align: center;
+        }
+        
+        form
+        {
+            text-align: center;
+        }
+    </style>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>View CompanyList</title>
+
+<script type="text/javascript">
+
+function generateHTML(xmlDoc)
+   {
+           flag = 0;
+           ELEMENT_NODE = 1;    // MS parser doesn't define Node.ELEMENT_NODE
+           root=xmlDoc.DocumentElement;
+           html_text="<html><head><title>XML Parse Result</title></head><body>";
+           html_text+="<table border='2' width='50%' height='50%' align='center'>";
+    
+           company = xmlDoc.getElementsByTagName("Row");
+           if(company.length == 1)
+           {
+               alert("NO COMPANY LISTED IN XML FILE");
+               flag = 1;
+           }
+           companyNodeList=company.item(0).childNodes;
+           html_text+="<tbody>";
+           html_text+="<tr>";
+           x=0;  y=0;
+	   // output the headers
+           for(i=0;i<companyNodeList.length;i++)
+           {
+               if(companyNodeList.item(i).nodeType==ELEMENT_NODE)
+			   {  
+                    header=companyNodeList.item(i).firstChild.nodeValue;
+                   html_text+="<th>"+header+"</th>";
+                    
+               }   
+           }
+           html_text+="</tr>";
+           // output out the values
+           for(i=1;i<company.length;i++) //do for all planes
+           {
+               companyNodeList=company.item(i).childNodes; //get properties of a plane
+               html_text+="<tr>";      //start a new row of the output table
+               for(j=0;j<companyNodeList.length;j++)
+               {
+                   if(companyNodeList.item(j).nodeType==ELEMENT_NODE)
+			        {
+                        if(companyNodeList.item(j).firstChild == null || companyNodeList.item(j).firstChild.nodeValue.trim().length == 0)
+                        {
+                            html_text += "<td>NA</td>";
+                        }
+			            else if(companyNodeList.item(j).nodeName=="Logo")
+				        {//handle images separately
+			                 html_text+="<td><img src='"+companyNodeList.item(j).firstChild.nodeValue+"' width= 60 height=60'></td>";                         
+                        }
+                        else if(companyNodeList.item(j).nodeName=="HomePage") 
+                        {
+                            html_text+="<td><a href='"+companyNodeList.item(j).firstChild.nodeValue+"'>link to company</a></td>"; 
+                        }
+
+		                else
+                        {
+                            html_text+="<td>"+companyNodeList.item(j).firstChild.nodeValue+"</td>";
+		                }
+                    }
+               }
+               html_text+="</tr>";
+           }
+           html_text+="</tbody>";
+           html_text+="</table>";
+           html_text+="<NOSCRIPT>";
+           html_text+="</bo";
+           html_text+="dy></html>";  
+}
+
+
+function loadXML(url)
+{
+    xmlDoc = null;
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    try
+    {
+    xmlhttp.open("GET",url,false);
+    xmlhttp.send();
+    }
+    catch(err)
+    {
+    if(xmlhttp.status == 404 || xmlhttp.status == 400)
+        alert("FILE NOT FOUND");
+    }
+    
+    xmlDoc=xmlhttp.responseXML;
+
+    return xmlDoc;
+        
+}
+
+    
+function viewXML(what)
+{
+    var URL = what.URL.value;
+    if(URL == "")
+        alert("FILE NAME NOT SPECIFIED");
+    else
+    {
+    xmlDoc = loadXML(URL);
+    if (window.ActiveXObject) //if IE, simply execute script (due to async prop).
+    {  
+        if (xmlDoc==null)
+        {     
+             alert("FILE NOT FOUND");
+        } 
+        else if (xmlDoc.documentElement.nodeName == "parsererror")
+        {     
+             alert("ERROR IN XML FILE");
+        } 
+        else 
+        { 
+            generateHTML(xmlDoc);   
+            if(flag !=1)
+            {
+                hWin = window.open("", "Assignment4", "scrollbars=yes,height=800,width=610");  
+                hWin.document.write(html_text); 
+                hWin.document.close();
+            }
+        }  
+    } 
+    
+    else //else if FF, execute script once XML object has loaded
+    {  
+        if (xmlDoc==null)
+        {     
+             alert("FILE NOT FOUND");
+        } 
+        else if (xmlDoc.documentElement.nodeName == "parsererror")
+        {     
+             alert("ERROR IN XML FILE");
+        } 
+        else 
+        { 
+            xmlDoc.onload=generateHTML(xmlDoc);
+            if(flag!=1)
+            {
+                hWin = window.open("", "Assignment4", "scrollbars=yes,height=800,width=610");
+                hWin.document.write(html_text);
+                hWin.document.close();
+            }
+        }  
+    }
+    }
+    hWin.document.close(); 
+}
+    
+</script>
+
+</head>
+    <body> 
+          <h3>Enter URL for Company List XML file</h3>
+        <form name="myform" method="POST" id="location" > 
+            <input type="text" name="URL" maxlength="45" size="50" value="companylist.xml" /> 
+            <br /> 
+            <br>
+            <input type="button" name="submit" value="Submit Query" onclick = "viewXML(this.form)"/> 
+        </form>        
+    <NOSCRIPT>    
+    </body>
+</html>
